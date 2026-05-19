@@ -1,141 +1,240 @@
-// src/app/page.tsx
 'use client';
 
 import Link from 'next/link';
 
-export default function HomePage() {
-  // 🏢 PITCH DECK CONFIGURATION
-  // Swap these values right before your meeting with a specific club owner!
-  const clubConfig = {
-    name: "SMASH & DROP ARENA", // 👈 Type the prospect's exact club name here
-    location: "BGC, Taguig",     // 👈 Their facility location
-    tagline: "Exclusive Club Operating System",
-    motto: "Bespoke digital architecture engineered for the premier courts of "
-  };
-
-  const features = [
-    {
-      title: 'Book a Court',
-      description: `Reserve premium courts instantly. Tailored time slot allocation with fast-track GCash and Maya mobile payment processing lanes.`,
-      actionText: 'Open Booking Portal',
-      href: '/book',
-      icon: '🏓',
-      badge: 'Bespoke',
-      colorStyles: 'border-emerald-500/20 bg-emerald-500/[0.02] hover:border-emerald-500/50 group-hover:bg-emerald-500/10 text-emerald-400',
-      btnStyles: 'bg-emerald-500 text-slate-950 hover:bg-emerald-400 font-black'
-    },
-    {
-      title: 'Live Court Monitor',
-      description: `Track real-time court occupancy, receipt verification queues, and booking schedules customized for your player base.`,
-      actionText: 'View Court Status',
-      href: '/live',
-      icon: '📊',
-      badge: 'Live Operations',
-      colorStyles: 'border-blue-500/20 bg-blue-500/[0.02] hover:border-blue-500/50 group-hover:bg-blue-500/10 text-blue-400',
-      btnStyles: 'bg-slate-900 text-white hover:bg-slate-800 border border-slate-800'
-    },
-   // src/app/page.tsx
-// Find the 3rd feature object inside the array and update it to this:
-{
-  title: 'Admin Dashboard', // 👈 Updated title
-  description: 'Manage active bookings, review payment receipts, update entry statuses, and control overall arena parameters.',
-  actionText: 'Open Dashboard', // 👈 Updated action text
-  href: '/dashboard', // 👈 Changed route destination from /reservations to /dashboard
-  icon: '🎛️', // 👈 Swapped ticket icon to a control panel layout icon
-  badge: 'Management',
-  colorStyles: 'border-amber-500/20 bg-amber-500/[0.02] hover:border-amber-500/50 group-hover:bg-amber-500/10 text-amber-400',
-  btnStyles: 'bg-slate-900 text-white hover:bg-slate-800 border border-slate-800'
-}
-  ];
-
+export default function Home() {
   return (
-    <div className="min-h-screen text-slate-100 antialiased flex flex-col justify-between relative bg-slate-950 overflow-hidden">
-      
-      {/* 📸 High-Visibility Court Background */}
-      {/* Opacity bumped up to 35% and backdrop-blur adjusted so it's beautifully clear yet readable */}
-      <div className="absolute inset-0 z-0">
-        <img 
-          src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=2070&auto=format&fit=crop" 
-          alt="Sports Court Background"
-          className="w-full h-full object-cover opacity-35 filter brightness-[50%] contrast-[110%]"
-        />
-        {/* Deep vignette gradient wrapper to frame the cards perfectly */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/30 to-slate-950 backdrop-blur-[2px]" />
-      </div>
-
-      {/* Structural Minimalist Header Navbar */}
-      {/* DELETE OR COMMENT THIS SECTION OUT OF APP/PAGE.TSX */}
-
-      {/* Main Container Core Menu Options */}
-      <main className="relative z-10 max-w-6xl mx-auto px-6 py-12 md:py-20 flex-1 flex flex-col justify-center items-center w-full">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 xl:p-8 selection:bg-emerald-500/30">
+      <div className="max-w-7xl w-full text-center my-2">
         
-        {/* Highly Personalized Headline Banner */}
-        <div className="text-center max-w-2xl mx-auto mb-14 space-y-4">
-          <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 shadow-sm">
-            {clubConfig.tagline}
+        {/* Brand Headline */}
+        <div className="mb-6 xl:mb-8">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
+            Palawan Sports Platform
           </span>
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-none uppercase">
-            Next-Gen Arena <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-blue-400">
-              Management Portal
-            </span>
+          <h1 className="text-3xl xl:text-4xl font-black tracking-tight text-white mt-2">
+            Baham Sports Hub
           </h1>
-          <p className="text-xs md:text-sm font-semibold text-slate-300 leading-relaxed max-w-xl mx-auto">
-            {clubConfig.motto}
-            <span className="text-white underline decoration-emerald-400 decoration-2 underline-offset-4 font-bold">
-              {clubConfig.name}
-            </span>
-            . A single-instance software layer tailored completely to your court configurations, member behaviors, and operational standards.
+          <p className="text-xs xl:text-sm text-slate-400 mt-1 max-w-xl mx-auto">
+            The unified operating system for court reservations, tournament structures, live venue streams, and mobile crowd tracking.
           </p>
         </div>
 
-        {/* 3-Column Grid Feature Section Array Loop */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full items-stretch">
-          {features.map((item) => (
-            <Link 
-              key={item.title} 
-              href={item.href}
-              className="group flex flex-col justify-between bg-slate-950/85 border border-slate-800/80 rounded-2xl p-6 shadow-2xl hover:border-slate-700/80 backdrop-blur-md transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
-            >
-              <div className="space-y-5">
-                <div className="flex justify-between items-center">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold border transition-colors ${item.colorStyles}`}>
-                    {item.icon}
-                  </div>
-                  <span className="text-[8px] font-black uppercase tracking-widest bg-slate-900/90 border border-slate-800 px-2 py-1 rounded-md text-slate-400 shadow-inner">
-                    {item.badge}
-                  </span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <h2 className="text-sm font-black text-white group-hover:text-emerald-400 transition-colors uppercase tracking-tight">
-                    {item.title}
-                  </h2>
-                  <p className="text-[11px] font-medium text-slate-400 leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
+        {/* 🚀 8-CARD COMPACT MATRIX */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full mx-auto mb-6">
+          
+          {/* 1. Court Booking System -> /book */}
+          <Link 
+            href="/book" 
+            className="group bg-slate-900 border border-slate-800 hover:border-indigo-500/40 p-4 rounded-xl text-left shadow-xl transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl">📅</span>
+                <span className="text-[10px] font-bold text-indigo-400 font-mono tracking-wider uppercase bg-indigo-500/10 px-1.5 py-0.5 rounded">Rentals</span>
               </div>
+              <h3 className="font-bold text-sm text-white mt-3 group-hover:text-indigo-400 transition-colors">
+                Court Reservation
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Book open court timeslots, select preferred court numbers, and check daily calendars.
+              </p>
+            </div>
+            <div className="text-[10px] text-slate-600 group-hover:text-indigo-400/70 font-mono mt-3 transition-colors">
+              → Launch Scheduler
+            </div>
+          </Link>
 
-              {/* Action Button Area */}
-              <div className="pt-6 mt-auto">
-                <div className={`w-full py-3 px-4 rounded-xl text-[10px] uppercase tracking-wider text-center transition-all ${item.btnStyles}`}>
-                  {item.actionText} →
-                </div>
+          {/* 2. Live Court Status Display -> /live */}
+          <Link 
+            href="/live" 
+            className="group bg-slate-900 border border-slate-800 hover:border-cyan-500/40 p-4 rounded-xl text-left shadow-xl transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl">📺</span>
+                <span className="text-[10px] font-bold text-cyan-400 font-mono tracking-wider uppercase bg-cyan-500/10 px-1.5 py-0.5 rounded">TV Stream</span>
               </div>
-            </Link>
-          ))}
+              <h3 className="font-bold text-sm text-white mt-3 group-hover:text-cyan-400 transition-colors">
+                Live Court Monitor
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Real-time monitor layout designed for venue TVs. Tracks active matches and open courts.
+              </p>
+            </div>
+            <div className="text-[10px] text-slate-600 group-hover:text-cyan-400/70 font-mono mt-3 transition-colors">
+              → Stream Display
+            </div>
+          </Link>
+
+          {/* 3. Public Mobile Scoreboard -> /live */}
+          <Link 
+            href="/scoreboard"
+            className="group bg-slate-900 border border-slate-800 hover:border-teal-500/40 p-4 rounded-xl text-left shadow-xl transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl">📱</span>
+                <span className="text-[10px] font-bold text-teal-400 font-mono tracking-wider uppercase bg-teal-500/10 px-1.5 py-0.5 rounded">Audience</span>
+              </div>
+              <h3 className="font-bold text-sm text-white mt-3 group-hover:text-teal-400 transition-colors">
+                Live Scoreboard
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Mobile-friendly layout for spectators to follow live points and game trends on their phones.
+              </p>
+            </div>
+            <div className="text-[10px] text-slate-600 group-hover:text-teal-400/70 font-mono mt-3 transition-colors">
+              → Open Phone Feed
+            </div>
+          </Link>
+
+          {/* 4. Analytics & Bookings Dashboard -> /dashboard */}
+          <Link 
+            href="/dashboard" 
+            className="group bg-slate-900 border border-slate-800 hover:border-violet-500/40 p-4 rounded-xl text-left shadow-xl transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl">📊</span>
+                <span className="text-[10px] font-bold text-violet-400 font-mono tracking-wider uppercase bg-violet-500/10 px-1.5 py-0.5 rounded">Metrics</span>
+              </div>
+              <h3 className="font-bold text-sm text-white mt-3 group-hover:text-violet-400 transition-colors">
+                Business Analytics
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Overview metrics panel compiling transaction histories and court hour utilization analytics.
+              </p>
+            </div>
+            <div className="text-[10px] text-slate-600 group-hover:text-violet-400/70 font-mono mt-3 transition-colors">
+              → Review Insights
+            </div>
+          </Link>
+
+          {/* 5. Player Registration Form -> /tournament/register */}
+          <Link 
+            href="/tournament/register" 
+            className="group bg-slate-900 border border-slate-800 hover:border-emerald-500/40 p-4 rounded-xl text-left shadow-xl transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl">📝</span>
+                <span className="text-[10px] font-bold text-emerald-400 font-mono tracking-wider uppercase bg-emerald-500/10 px-1.5 py-0.5 rounded">Public</span>
+              </div>
+              <h3 className="font-bold text-sm text-white mt-3 group-hover:text-emerald-400 transition-colors">
+                Team Registration
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Open entry portal for competitive athletes to submit team rosters and link GCash payments.
+              </p>
+            </div>
+            <div className="text-[10px] text-slate-600 group-hover:text-emerald-400/70 font-mono mt-3 transition-colors">
+              → Open Sign-Up
+            </div>
+          </Link>
+
+          {/* 6. Public Live Bracket Tree -> /tournament/bracket */}
+          <Link 
+            href="/tournament/bracket" 
+            className="group bg-slate-900 border border-slate-800 hover:border-blue-500/40 p-4 rounded-xl text-left shadow-xl transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl">🏆</span>
+                <span className="text-[10px] font-bold text-blue-400 font-mono tracking-wider uppercase bg-blue-500/10 px-1.5 py-0.5 rounded">Live Sync</span>
+              </div>
+              <h3 className="font-bold text-sm text-white mt-3 group-hover:text-blue-400 transition-colors">
+                Tournament Bracket
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Real-time bracket tree mapping match scores, ongoing sets, and automatic advancements.
+              </p>
+            </div>
+            <div className="text-[10px] text-slate-600 group-hover:text-blue-400/70 font-mono mt-3 transition-colors">
+              → View Bracket
+            </div>
+          </Link>
+
+          {/* 7. Match Operations Desk -> /admin/matches */}
+          <Link 
+            href="/admin/matches" 
+            className="group bg-slate-900 border border-slate-800 hover:border-amber-500/40 p-4 rounded-xl text-left shadow-xl transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl">⚔️</span>
+                <span className="text-[10px] font-bold text-amber-400 font-mono tracking-wider uppercase bg-amber-500/10 px-1.5 py-0.5 rounded">Ops Desk</span>
+              </div>
+              <h3 className="font-bold text-sm text-white mt-3 group-hover:text-amber-400 transition-colors">
+                Match Scoring Desk
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Administrative desk to update scores, toggle live statuses, and trigger bracket advancements.
+              </p>
+            </div>
+            <div className="text-[10px] text-slate-600 group-hover:text-amber-400/70 font-mono mt-3 transition-colors">
+              → Launch Scoring Engine
+            </div>
+          </Link>
+
+          {/* 8. Tournament Seeding & Approvals -> /admin/tournaments */}
+          <Link 
+            href="/admin/tournaments" 
+            className="group bg-slate-900 border border-slate-800 hover:border-red-500/40 p-4 rounded-xl text-left shadow-xl transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl">⚙️</span>
+                <span className="text-[10px] font-bold text-red-400 font-mono tracking-wider uppercase bg-red-500/10 px-1.5 py-0.5 rounded">Config</span>
+              </div>
+              <h3 className="font-bold text-sm text-white mt-3 group-hover:text-red-400 transition-colors">
+                Tournament Setup
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Approve newly registered teams, manage tournament details, and initialize clean brackets.
+              </p>
+            </div>
+            <div className="text-[10px] text-slate-600 group-hover:text-red-400/70 font-mono mt-3 transition-colors">
+              → Access Panel
+            </div>
+          </Link>
+
+
+{/* 🌟 NEW CARD 9: PUBLIC EVENTS PORTAL SHIFT */}
+<Link 
+  href="/games" 
+            className="group bg-slate-900 border border-slate-800 hover:border-red-500/40 p-4 rounded-xl text-left shadow-xl transition-all duration-200 hover:-translate-y-0.5 flex flex-col justify-between"
+>
+  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/10 group-hover:scale-105 transition-transform">
+    🏟️
+  </div>
+  
+  <div className="absolute top-6 right-6">
+    <span className="bg-emerald-500/10 text-emerald-400 font-mono text-[9px] font-black tracking-widest px-2 py-0.5 rounded border border-emerald-500/20 uppercase animate-pulse">
+      Live Showcase
+    </span>
+  </div>
+
+  <h3 className="mt-4 text-sm font-black uppercase text-white tracking-tight">
+    Public Games Portal <span className="text-emerald-400 font-mono font-medium lowercase">/games</span>
+  </h3>
+  <p className="mt-2 text-xs leading-relaxed text-slate-400">
+    Launch the immersive, fan-facing multi-sport bracket suite. Ideal for projecting on stadium jumbotrons or pitching live to tournament hosts.
+  </p>
+  
+   <div className="text-[10px] text-slate-600 group-hover:text-red-400/70 font-mono mt-3 transition-colors">
+              → Access Panel
+            </div>
+</Link>
+
         </div>
 
-      </main>
+        {/* Footer info metadata */}
+        <div className="text-[10px] text-slate-600 font-mono border-t border-slate-900 pt-4 mt-4">
+          System Core: Next.js v16 + Supabase Relational Cluster Engine
+        </div>
 
-      {/* Structural Minimal Footer */}
-      <footer className="relative z-10 border-t border-slate-900/80 bg-slate-950/90 backdrop-blur py-5 text-center">
-        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-          Bespoke Deployment Platform • Configured Exclusively for {clubConfig.name}
-        </p>
-      </footer>
-
+      </div>
     </div>
   );
 }

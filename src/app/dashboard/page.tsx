@@ -1,8 +1,8 @@
-// src/app/dashboard/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase/client';
+import Link from 'next/link';
 
 interface Booking {
   id: string;        // UUID from DB
@@ -58,7 +58,6 @@ export default function AdminDashboardPage() {
       setBookings(formatted);
 
       // 🔄 Sync up active record details if drawer is genuinely open
-      // We read the updated state safely by matching against functional updates or current values
       setSelectedBooking((prev) => {
         if (!prev) return null;
         return formatted.find(item => item.id === prev.id) || null;
@@ -68,7 +67,6 @@ export default function AdminDashboardPage() {
   };
 
   // ⚡ FIXED LIFECYCLE: Keep the WebSocket pipeline alive permanently. 
-  // We change the dependency array to empty [] so it doesn't loop when opening/closing items.
   useEffect(() => {
     fetchDashboardData();
 
@@ -85,37 +83,36 @@ export default function AdminDashboardPage() {
   }, []); // 👈 Empty array ensures initialization happens exactly once
 
   // 🛠️ 2. Action Handlers
- const updateStatus = async (id: string, nextStatus: 'accepted' | 'rejected') => {
-  setSelectedBooking(null);
+  const updateStatus = async (id: string, nextStatus: 'accepted' | 'rejected') => {
+    setSelectedBooking(null);
 
-  // 🧪 Diagnostic Log
-  console.log(`Attempting database write: Row ID ${id} -> Target Status: ${nextStatus}`);
+    // 🧪 Diagnostic Log
+    console.log(`Attempting database write: Row ID ${id} -> Target Status: ${nextStatus}`);
 
-  const { data, error, status, statusText } = await supabase
-    .from('bookings')
-    .update({ status: nextStatus })
-    .eq('id', id)
-    .select(); // 👈 Forcing a return select catches silent policy blocks
+    const { data, error, status, statusText } = await supabase
+      .from('bookings')
+      .update({ status: nextStatus })
+      .eq('id', id)
+      .select(); // 👈 Forcing a return select catches silent policy blocks
 
-  console.log("Supabase response network status:", status, statusText);
-  
-  if (error) {
-    console.error("❌ SUPABASE WRITE ERROR DETECTED:", error);
-    alert(`Database rejected write: ${error.message}`);
+    console.log("Supabase response network status:", status, statusText);
+    
+    if (error) {
+      console.error("❌ SUPABASE WRITE ERROR DETECTED:", error);
+      alert(`Database rejected write: ${error.message}`);
+      fetchDashboardData();
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn("⚠️ Silent rejection: Database row was not modified. Check your RLS policies or UUID string format.");
+      alert("The server processed the request but zero rows were modified. This usually means Row Level Security (RLS) is blocking edits.");
+    } else {
+      console.log("✅ Database write verified successfully:", data);
+    }
+
     fetchDashboardData();
-    return;
-  }
-
-  // If data is empty, RLS or your WHERE clause (eq) failed to find/match a row it has permission to edit
-  if (!data || data.length === 0) {
-    console.warn("⚠️ Silent rejection: Database row was not modified. Check your RLS policies or UUID string format.");
-    alert("The server processed the request but zero rows were modified. This usually means Row Level Security (RLS) is blocking edits.");
-  } else {
-    console.log("✅ Database write verified successfully:", data);
-  }
-
-  fetchDashboardData();
-};
+  };
 
   const getCourtName = (id: number) => {
     const names: Record<number, string> = {
@@ -133,17 +130,25 @@ export default function AdminDashboardPage() {
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Module Meta Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl">
           <div>
+            <div className="flex items-center space-x-2 text-xs font-mono text-emerald-400 font-bold uppercase tracking-wider mb-1">
+              <Link href="/" className="hover:underline text-slate-400">Hub Home</Link>
+              <span>/</span>
+              <span>Reservations Dashboard</span>
+            </div>
             <h1 className="text-xl font-black uppercase tracking-tight text-white">Ops Control Dashboard</h1>
             <p className="text-xs text-slate-400">Click any row below to review matching user details and full payment attachment metadata</p>
           </div>
-          <button 
-            onClick={fetchDashboardData}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-xl border border-slate-700 transition-all shadow-md"
-          >
-            🔄 Force Sync Database
-          </button>
+          
+          <div className="flex items-center gap-2 self-stretch md:self-auto">
+            <button 
+              onClick={fetchDashboardData}
+              className="flex-1 md:flex-initial px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-xl border border-slate-700 transition-all shadow-md"
+            >
+              🔄 Force Sync
+            </button>
+          </div>
         </div>
 
         {/* Loading / Empty States */}
@@ -247,15 +252,12 @@ export default function AdminDashboardPage() {
 
       {/* 📊 FULL-DETAILS SIDEBAR MODAL DRAWER OVERLAY */}
       {selectedBooking && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-          {/* Transparent click-outside-to-close boundary area layer */}
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/60 backdrop-blur-sm">
           <div className="flex-1" onClick={() => setSelectedBooking(null)} />
           
-          {/* Main Sidebar Right Container block UI */}
           <div className="w-full max-w-lg bg-slate-950 border-l border-slate-800 h-full flex flex-col justify-between shadow-2xl p-6 relative z-10 overflow-y-auto">
             
             <div className="space-y-6">
-              {/* Header block details wrapper */}
               <div className="flex justify-between items-center border-b border-slate-800 pb-4">
                 <div>
                   <span className="text-[9px] font-mono font-black tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-md">
@@ -271,7 +273,7 @@ export default function AdminDashboardPage() {
                 </button>
               </div>
 
-              {/* Section 1: Customer Profile Details */}
+              {/* Profile details */}
               <div className="space-y-3">
                 <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-500">Player Profile</h3>
                 <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-2">
@@ -281,7 +283,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Section 2: Court Allocations */}
+              {/* Allocations */}
               <div className="space-y-3">
                 <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-500">Allocation Target</h3>
                 <div className="bg-slate-900/60 border border-slate-800 p-4 rounded-xl space-y-2">
@@ -303,7 +305,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Section 3: Embedded Proof Receipt Image */}
+              {/* Image Receipt Attachment */}
               <div className="space-y-3">
                 <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-500">Digital Payment Attachment</h3>
                 <div className="bg-slate-900/60 border border-slate-800 p-3 rounded-xl flex items-center justify-center min-h-[220px] max-h-[340px] overflow-hidden relative shadow-inner">
@@ -320,7 +322,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Sticky Action Footer buttons inside drawer side menu */}
+            {/* Sticky Action Footer */}
             <div className="border-t border-slate-800 pt-4 mt-6 flex gap-3">
               {selectedBooking.status === 'pending' ? (
                 <>
