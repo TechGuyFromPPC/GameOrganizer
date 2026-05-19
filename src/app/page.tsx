@@ -13,7 +13,7 @@ export default function Home() {
             Palawan Sports Platform
           </span>
           <h1 className="text-3xl xl:text-4xl font-black tracking-tight text-white mt-2">
-            Baham Sports Hub
+            PPC Sports Hub
           </h1>
           <p className="text-xs xl:text-sm text-slate-400 mt-1 max-w-xl mx-auto">
             The unified operating system for court reservations, tournament structures, live venue streams, and mobile crowd tracking.
