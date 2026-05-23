@@ -49,19 +49,19 @@ export default function PublicScoreboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-[#450a0a] text-red-50 p-4 md:p-8 font-sans">
       <div className="max-w-2xl mx-auto space-y-6">
         
         {/* Header Block */}
-        <header className="flex justify-between items-center bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xl">
+        <header className="flex justify-between items-center bg-[#7f1d1d] p-5 rounded-2xl border border-red-800 shadow-xl">
           <div>
-            <div className="flex items-center space-x-2 text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider mb-1">
-              <span className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
+            <div className="flex items-center space-x-2 text-xs font-mono text-[#facc15] font-bold uppercase tracking-wider mb-1">
+              <span className="w-2 h-2 bg-[#facc15] rounded-full animate-pulse" />
               <span>Live Streams Tracking</span>
             </div>
             <h1 className="text-xl font-black uppercase text-white tracking-tight">Tournament Scoreboard</h1>
           </div>
-          <Link href="/" className="text-xs font-mono bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-slate-400 hover:text-white transition">
+          <Link href="/" className="text-xs font-mono bg-[#450a0a] border border-red-800 px-3 py-1.5 rounded-xl text-red-300 hover:text-white transition">
             ✕ Close
           </Link>
         </header>
@@ -69,34 +69,33 @@ export default function PublicScoreboard() {
         {/* Live Standings Matrix */}
         <main className="space-y-4">
           {loading ? (
-            <p className="text-xs font-mono text-slate-500 animate-pulse text-center py-12">CONNECTING TO SCORES MATRIX...</p>
+            <p className="text-xs font-mono text-red-400 animate-pulse text-center py-12">CONNECTING TO SCORES MATRIX...</p>
           ) : matches.length === 0 ? (
-            <div className="bg-slate-900/40 border border-dashed border-slate-800 p-12 rounded-2xl text-center">
-              <p className="text-xs font-mono text-slate-500 uppercase tracking-wider">No matches are actively playing live right now</p>
+            <div className="bg-[#7f1d1d]/40 border border-dashed border-red-800 p-12 rounded-2xl text-center">
+              <p className="text-xs font-mono text-red-400 uppercase tracking-wider">No matches are actively playing live right now</p>
             </div>
           ) : (
             matches.map((match) => (
-              <div key={match.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md space-y-3">
-                <div className="flex justify-between items-center border-b border-slate-800/60 pb-2 text-[10px] font-mono text-slate-400">
+              <div key={match.id} className="bg-[#7f1d1d] border border-red-800 rounded-2xl p-4 shadow-md space-y-3">
+                <div className="flex justify-between items-center border-b border-red-800/60 pb-2 text-[10px] font-mono text-red-300">
                   <span>ROUND {match.round_number} • MATCH {match.match_number}</span>
-                  <span className="text-cyan-400 font-bold uppercase animate-pulse">● LIVE ON COURT</span>
+                  <span className="text-[#facc15] font-bold uppercase animate-pulse">● LIVE ON COURT</span>
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-slate-850">
+                  <div className="flex justify-between items-center bg-[#450a0a]/40 p-3 rounded-xl border border-red-900">
                     <span className="font-bold text-sm text-white max-w-[70%] truncate uppercase tracking-tight">{match.team_a?.team_name || 'TBD'}</span>
-                    <span className="font-mono text-2xl font-black text-cyan-400">{match.team_a_score}</span>
+                    <span className="font-mono text-2xl font-black text-[#facc15]">{match.team_a_score}</span>
                   </div>
-                  <div className="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-slate-850">
+                  <div className="flex justify-between items-center bg-[#450a0a]/40 p-3 rounded-xl border border-red-900">
                     <span className="font-bold text-sm text-white max-w-[70%] truncate uppercase tracking-tight">{match.team_b?.team_name || 'TBD'}</span>
-                    <span className="font-mono text-2xl font-black text-cyan-400">{match.team_b_score}</span>
+                    <span className="font-mono text-2xl font-black text-[#facc15]">{match.team_b_score}</span>
                   </div>
                 </div>
               </div>
             ))
           )}
         </main>
-
       </div>
     </div>
   );

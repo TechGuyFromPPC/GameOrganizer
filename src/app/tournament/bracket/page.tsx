@@ -3,173 +3,77 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../utils/supabase/client';
 
+interface TeamRelation { team_name: string; }
 interface MatchNode {
-  id: string;
-  round_number: number;
-  match_number: number;
-  team_a_score: number;
-  team_b_score: number;
-  status: string;
-  team_a?: any; // Loosened to prevent deep nesting array errors
-  team_b?: any;
+  id: string; round_number: number; match_number: number;
+  team_a_score: number; team_b_score: number; status: string;
+  team_a?: TeamRelation | null; team_b?: TeamRelation | null;
 }
 
-interface BracketRound {
-  title: string;
-  matches: MatchNode[];
-}
 function TournamentBracket() {
-  const [rounds, setRounds] = useState<BracketRound[]>([]);
+  const [rounds, setRounds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchLiveBracketData = async () => {
-    try {
-      // Fetch matches and perform a relational join to pull team profile names
-      const { data, error } = await supabase
-        .from('tournament_matches')
-        .select(`
-          id, round_number, match_number, team_a_score, team_b_score, status,
-          team_a:team_a_id(team_name),
-          team_b:team_b_id(team_name)
-        `)
-        .order('match_number', { ascending: true });
+  const fetchData = async () => {
+    const { data } = await supabase.from('tournament_matches').select(`
+      id, round_number, match_number, team_a_score, team_b_score, status, team_a_id, team_b_id,
+      team_a:team_a_id(team_name), team_b:team_b_id(team_name)
+    `).order('match_number', { ascending: true });
 
-      if (error) throw error;
+    const clean = (data || []).map((m: any) => ({
+      ...m,
+      team_a: Array.isArray(m.team_a) ? m.team_a[0] : m.team_a,
+      team_b: Array.isArray(m.team_b) ? m.team_b[0] : m.team_b,
+    }));
 
-      const dbMatches = data || [];
-
-      // Organize matches structurally into their corresponding rounds
-      const structuralRounds: BracketRound[] = [
-        { title: 'Quarterfinals (Round 1)', matches: dbMatches.filter(m => m.round_number === 1) },
-        { title: 'Semifinals (Round 2)', matches: dbMatches.filter(m => m.round_number === 2) },
-        { title: 'Championship (Round 3)', matches: dbMatches.filter(m => m.round_number === 3) }
-      ];
-
-      setRounds(structuralRounds);
-    } catch (error) {
-      console.error('Error fetching bracket:', error);
-    } finally {
-      setLoading(false);
-    }
+    setRounds([
+      { title: 'QUARTERFINALS', matches: clean.filter((m: any) => m.round_number === 1) },
+      { title: 'SEMIFINALS', matches: clean.filter((m: any) => m.round_number === 2) },
+      { title: 'CHAMPIONSHIP', matches: clean.filter((m: any) => m.round_number === 3) }
+    ]);
+    setLoading(false);
   };
 
-  useEffect(() => {
-    fetchLiveBracketData();
+  useEffect(() => { fetchData(); }, []);
 
-    // Corrected explicit configuration object assignments for the real-time stream
-    const channel = supabase
-      .channel('live-bracket-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tournament_matches'
-        },
-        () => {
-          fetchLiveBracketData();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center text-sm font-medium animate-pulse">
-        Fetching real-time Baham Sports match parameters...
-      </div>
-    );
-  }
-
-  // Handle scenario where bracket button hasn't been clicked yet
-  const hasMatches = rounds.some(r => r.matches.length > 0);
+  if (loading) return <div className="min-h-screen bg-[#450a0a] flex items-center justify-center text-[#facc15] font-mono">LOADING TELEMETRY...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 overflow-x-auto selection:bg-emerald-500/30">
-      <div className="max-w-7xl mx-auto min-w-[1000px]">
+    <div className="min-h-screen bg-[#450a0a] text-red-50 p-6 md:p-10 font-sans">
+      <div className="max-w-6xl mx-auto space-y-8">
         
-        <div className="mb-12 text-center lg:text-left border-b border-slate-900 pb-6">
-          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">
-            Official Live Tree
-          </span>
-          <h1 className="text-3xl font-black tracking-tight mt-2 text-white">Baham Sports Invitational</h1>
-          <p className="text-sm text-slate-400 mt-1">Single elimination framework platform. Real-time court scoring updates.</p>
+        {/* Header - Updated Branding */}
+        <div className="border-b border-red-900 pb-6">
+          <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Baham Sports Invitational</h1>
+          <p className="text-xs font-mono text-[#facc15] mt-2">● REAL-TIME BRACKET TELEMETRY</p>
         </div>
 
-        {!hasMatches ? (
-          <div className="text-center p-16 border border-dashed border-slate-800 rounded-2xl max-w-md mx-auto mt-12">
-            <p className="text-sm text-slate-400 font-medium">Tournament bracket has not been generated yet.</p>
-            <p className="text-xs text-slate-600 mt-1">Once the administrator closes registration and seeds the pool, the tree will render automatically.</p>
-          </div>
-        ) : (
-          <div className="flex justify-between items-center gap-8 px-4">
-            {rounds.map((round, roundIndex) => (
-              <div key={roundIndex} className="flex-1 flex flex-col justify-around h-[550px] min-w-[260px]">
-                
-                <div className="text-center mb-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-900/50 py-1.5 border border-slate-800/60 rounded-md">
-                    {round.title}
-                  </p>
-                </div>
-
-                <div className="flex-1 flex flex-col justify-around">
-                  {round.matches.map((match) => (
-                    <div 
-                      key={match.id} 
-                      className={`bg-slate-900 border rounded-xl overflow-hidden shadow-lg transition-all ${
-                        match.status === 'live' ? 'border-emerald-500 ring-1 ring-emerald-500/20' : 'border-slate-800'
-                      }`}
-                    >
-                      {match.status === 'live' && (
-                        <div className="bg-emerald-500 text-slate-950 text-[10px] font-black uppercase tracking-widest text-center py-0.5 animate-pulse">
-                          • Match Live on Court
-                        </div>
-                      )}
-
-                      <div className="divide-y divide-slate-800/50">
-                        {/* Team Row A */}
-                        <div className="flex justify-between items-center px-4 py-2.5 bg-slate-900/40">
-                          <span className="text-xs font-semibold text-slate-200">
-                            {match.team_a?.team_name || 'TBD'}
-                          </span>
-                          <span className="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono font-bold text-slate-400 border border-slate-800">
-                            {match.team_a_score}
-                          </span>
-                        </div>
-
-                        {/* Team Row B */}
-                        <div className="flex justify-between items-center px-4 py-2.5 bg-slate-900/40">
-                          <span className="text-xs font-semibold text-slate-200">
-                            {match.team_b?.team_name || 'TBD'}
-                          </span>
-                          <span className="bg-slate-950 px-2 py-0.5 rounded text-xs font-mono font-bold text-slate-400 border border-slate-800">
-                            {match.team_b_score}
-                          </span>
-                        </div>
-                      </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {rounds.map((round, i) => (
+            <div key={i} className="space-y-4">
+              <h2 className="text-[10px] font-black text-red-400 uppercase tracking-widest">{round.title}</h2>
+              {round.matches.map((m: MatchNode) => (
+                <div key={m.id} className="bg-[#7f1d1d] border border-red-800 rounded-2xl p-4 hover:border-[#facc15]/30 transition-all">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-[10px] font-mono text-red-300/60 uppercase">Match #{m.match_number}</span>
+                    {m.status === 'live' && <span className="text-[9px] font-bold text-[#facc15] animate-pulse uppercase">Live</span>}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm font-bold">
+                      <span className="text-white">{m.team_a?.team_name || 'TBD'}</span>
+                      <span className="font-mono text-[#facc15]">{m.team_a_score}</span>
                     </div>
-                  ))}
-
-                  {/* Handle empty nodes for future placeholder rounds */}
-                  {round.matches.length === 0 && roundIndex === 1 && (
-                    <>
-                      <div className="bg-slate-900/20 border border-dashed border-slate-800/40 h-16 rounded-xl flex items-center justify-center text-xs text-slate-600">Waiting for Semifinalists</div>
-                      <div className="bg-slate-900/20 border border-dashed border-slate-800/40 h-16 rounded-xl flex items-center justify-center text-xs text-slate-600">Waiting for Semifinalists</div>
-                    </>
-                  )}
-                  {round.matches.length === 0 && roundIndex === 2 && (
-                    <div className="bg-slate-900/20 border border-dashed border-slate-800/40 h-16 rounded-xl flex items-center justify-center text-xs text-slate-600">Waiting for Finalists</div>
-                  )}
+                    <div className="flex justify-between text-sm font-bold">
+                      <span className="text-white">{m.team_b?.team_name || 'TBD'}</span>
+                      <span className="font-mono text-[#facc15]">{m.team_b_score}</span>
+                    </div>
+                  </div>
                 </div>
-
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

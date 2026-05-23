@@ -1,134 +1,165 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import Link from 'next/link';
+import { supabase } from '../../../utils/supabase/client';
+import LiveScoringDesk from '../../../components/LiveScoringDesk';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-interface Match {
-  id: string;
-  round_number: number;
-  match_number: number;
-  team_a_id: string | null;
-  team_b_id: string | null;
-  team_a_score: number;
-  team_b_score: number;
-  status: string;
-  team_a?: { team_name: string } | null;
-  team_b?: { team_name: string } | null;
-}
-
-export default function MatchScoringDesk() {
-  const [matches, setMatches] = useState<Match[]>([]);
+export default function AdminMatchesDashboard() {
+  const [matches, setMatches] = useState<any[]>([]);
+  const [selectedMatch, setSelectedMatch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchMatches = async () => {
+  const fetchAllMatches = async () => {
     try {
       const { data, error } = await supabase
         .from('tournament_matches')
         .select(`
-          id, round_number, match_number, team_a_id, team_b_id, team_a_score, team_b_score, status,
-          team_a:team_a_id(team_name), team_b:team_b_id(team_name)
+          id, round_number, match_number, status, current_period, clock_seconds_left, clock_is_running,
+          team_a_score, team_b_score, team_a_id, team_b_id,
+          team_a:team_a_id(team_name),
+          team_b:team_b_id(team_name)
         `)
-        .or('status.eq.live,status.eq.scheduled')
-        .order('round_number', { ascending: true })
         .order('match_number', { ascending: true });
 
       if (error) throw error;
-      setMatches((data || []).map((m: any) => ({
-        ...m,
-        team_a: Array.isArray(m.team_a) ? m.team_a[0] : m.team_a,
-        team_b: Array.isArray(m.team_b) ? m.team_b[0] : m.team_b,
-      })));
+
+      const uniqueMap = new Map();
+      (data || []).forEach(m => uniqueMap.set(m.match_number, m));
+      setMatches(Array.from(uniqueMap.values()));
+      
+      if (selectedMatch) {
+        const freshData = data?.find(m => m.id === selectedMatch.id);
+        if (freshData) setSelectedMatch(freshData);
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchMatches(); }, []);
+  useEffect(() => { fetchAllMatches(); }, []);
 
-  const adjustScore = async (matchId: string, team: 'a' | 'b', delta: number) => {
-    const match = matches.find(m => m.id === matchId);
-    if (!match || match.status === 'completed') return;
+  const handleStartMatch = async (matchId: string, matchNum: number) => {
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from('tournament_matches')
+        .update({ status: 'live', clock_is_running: true, clock_seconds_left: 720 })
+        .eq('id', matchId);
 
-    const currentScore = team === 'a' ? match.team_a_score : match.team_b_score;
-    const nextScore = Math.max(0, currentScore + delta);
-
-    setMatches(prev => prev.map(m => m.id === matchId ? { ...m, [team === 'a' ? 'team_a_score' : 'team_b_score']: nextScore } : m));
-
-    await supabase
-      .from('tournament_matches')
-      .update({ [team === 'a' ? 'team_a_score' : 'team_b_score']: nextScore })
-      .eq('id', matchId);
+      if (error) throw error;
+      await fetchAllMatches();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const changeStatus = async (matchId: string, nextStatus: string) => {
-    setUpdatingId(matchId);
-    await supabase.from('tournament_matches').update({ status: nextStatus }).eq('id', matchId);
-    await fetchMatches();
-    setUpdatingId(null);
-  };
+  const scheduledMatches = matches.filter(m => m.status === 'scheduled');
+  const liveMatches = matches.filter(m => m.status === 'live');
+  const completedMatches = matches.filter(m => m.status === 'completed');
+
+  if (loading) return <div className="p-8 text-xs font-mono text-red-500">LOADING TELEMETRY...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
-      <header className="max-w-3xl mx-auto border-b border-slate-800 pb-4 mb-6 flex justify-between items-center">
-        <div>
-          <span className="text-xs font-mono text-amber-400 font-bold uppercase tracking-wider">Ops Console</span>
-          <h1 className="text-xl font-black text-white">Match Scoring Desk</h1>
+    <div className="min-h-screen bg-[#450a0a] text-red-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        <header className="border-b border-red-900 pb-4">
+          <h1 className="text-2xl font-black tracking-tight text-white uppercase">Baham Sports Control Desk</h1>
+          <p className="text-xs text-red-300">Initialize matches, input active scores, and archive tournament brackets.</p>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* LIVE QUEUE */}
+            <section className="bg-[#7f1d1d]/40 p-4 rounded-xl border border-yellow-500/20">
+              <h2 className="text-xs font-bold text-[#facc15] uppercase tracking-widest mb-3 flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-[#facc15] animate-pulse" /> Live Courtside Logs ({liveMatches.length})
+              </h2>
+              {liveMatches.length === 0 ? (
+                <p className="text-xs text-red-400/50 font-mono">No live games found.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {liveMatches.map(m => (
+                    <button 
+                      key={m.id} 
+                      onClick={() => setSelectedMatch(m)}
+                      className={`p-3 bg-[#7f1d1d] border rounded-lg text-left transition ${selectedMatch?.id === m.id ? 'ring-2 ring-[#facc15] border-transparent' : 'border-red-800 hover:border-red-700'}`}
+                    >
+                      <div className="flex justify-between text-[10px] font-mono text-red-300 mb-1">
+                        <span>MATCH #{m.match_number}</span>
+                        <span>{m.current_period}</span>
+                      </div>
+                      <div className="text-xs font-bold truncate text-white">
+                        {m.team_a?.team_name || 'TBD'} vs {m.team_b?.team_name || 'TBD'}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* UPCOMING QUEUE */}
+            <section className="bg-[#7f1d1d]/40 p-4 rounded-xl border border-red-900">
+              <h2 className="text-xs font-bold text-red-300 uppercase tracking-widest mb-3">Upcoming Matches ({scheduledMatches.length})</h2>
+              <div className="space-y-2">
+                {scheduledMatches.map(m => (
+                  <div key={m.id} className="flex justify-between items-center p-3 bg-[#450a0a] border border-red-800 rounded-lg">
+                    <div>
+                      <span className="text-[10px] font-mono text-red-400 block">MATCH #{m.match_number} (Round {m.round_number})</span>
+                      <span className="text-xs font-semibold text-red-100">
+                        {m.team_a?.team_name || 'TBD'} <span className="text-red-700 px-1">vs</span> {m.team_b?.team_name || 'TBD'}
+                      </span>
+                    </div>
+                    <button
+                      disabled={actionLoading}
+                      onClick={() => handleStartMatch(m.id, m.match_number)}
+                      className="text-[11px] font-bold bg-[#facc15] hover:bg-yellow-500 text-[#450a0a] px-3 py-1.5 rounded transition disabled:opacity-50"
+                    >
+                      Start Match
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* COMPLETED QUEUE */}
+            <section className="bg-[#7f1d1d]/40 p-4 rounded-xl border border-red-900 opacity-60">
+              <h2 className="text-xs font-bold text-red-500 uppercase tracking-widest mb-3">Archived Games ({completedMatches.length})</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {completedMatches.map(m => (
+                  <div key={m.id} className="p-2.5 bg-[#450a0a] border border-red-900 rounded-md text-xs font-mono text-red-300 flex justify-between">
+                    <span>M#{m.match_number}: {m.team_a?.team_name} vs {m.team_b?.team_name}</span>
+                    <span className="font-bold text-white">{m.team_a_score}-{m.team_b_score}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+          </div>
+
+          <div>
+            {!selectedMatch ? (
+              <div className="bg-[#7f1d1d]/50 border border-dashed border-red-800 p-8 rounded-2xl text-center text-xs text-red-300 font-mono">
+                Select an active game to mount the real-time scoring desk.
+              </div>
+            ) : (
+              <LiveScoringDesk 
+                match={selectedMatch} 
+                onRefresh={fetchAllMatches} 
+                onClose={() => setSelectedMatch(null)} 
+              />
+            )}
+          </div>
+
         </div>
-        <Link href="/live" className="text-xs text-cyan-400 border border-cyan-500/20 px-3 py-1.5 rounded-xl bg-cyan-950/20 hover:bg-cyan-900/30 transition">
-          View Live TV Monitor →
-        </Link>
-      </header>
-
-      <main className="max-w-3xl mx-auto space-y-4">
-        {loading ? (
-          <div className="text-center py-12 font-mono text-xs text-slate-500 animate-pulse">LOADING LIVE MATRIX...</div>
-        ) : (
-          matches.map(match => (
-            <div key={match.id} className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <span className="text-[10px] font-mono text-slate-500 font-bold block">R{match.round_number} MATCH {match.match_number}</span>
-                <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded ${match.status === 'live' ? 'bg-cyan-500/10 text-cyan-400' : 'bg-slate-950 text-amber-400'}`}>{match.status}</span>
-              </div>
-
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center justify-between bg-slate-950/40 p-2 rounded-lg text-sm">
-                  <span className="truncate">{match.team_a?.team_name || 'TBD'}</span>
-                  <div className="flex items-center space-x-2">
-                    <button onClick={() => adjustScore(match.id, 'a', -1)} className="w-6 h-6 bg-slate-800 rounded hover:bg-slate-700">-</button>
-                    <span className="w-6 text-center font-mono font-bold text-cyan-400">{match.team_a_score}</span>
-                    <button onClick={() => adjustScore(match.id, 'a', 1)} className="w-6 h-6 bg-slate-800 rounded hover:bg-slate-700">+</button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between bg-slate-950/40 p-2 rounded-lg text-sm">
-                  <span className="truncate">{match.team_b?.team_name || 'TBD'}</span>
-                  <div className="flex items-center space-x-2">
-                    <button onClick={() => adjustScore(match.id, 'b', -1)} className="w-6 h-6 bg-slate-800 rounded hover:bg-slate-700">-</button>
-                    <span className="w-6 text-center font-mono font-bold text-cyan-400">{match.team_b_score}</span>
-                    <button onClick={() => adjustScore(match.id, 'b', 1)} className="w-6 h-6 bg-slate-800 rounded hover:bg-slate-700">+</button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="sm:w-24 flex justify-end">
-                {match.status === 'scheduled' && (
-                  <button onClick={() => changeStatus(match.id, 'live')} disabled={updatingId !== null} className="w-full text-center bg-cyan-500 text-slate-950 font-bold text-[11px] py-1.5 rounded-lg uppercase tracking-wider">Start</button>
-                )}
-                {match.status === 'live' && (
-                  <button onClick={() => changeStatus(match.id, 'completed')} disabled={updatingId !== null} className="w-full text-center bg-emerald-500 text-slate-950 font-bold text-[11px] py-1.5 rounded-lg uppercase tracking-wider">Finish</button>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </main>
+      </div>
     </div>
   );
 }
