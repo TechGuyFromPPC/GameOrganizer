@@ -3,6 +3,9 @@
   import { useState, useEffect, useRef } from 'react';
   import Link from 'next/link';
   import { createClient } from '@supabase/supabase-js';
+  import SingleEliminationBracket from './components/SingleEliminationBracket';
+// You'll need to create this file next
+  import RoundRobinGrid from './components/RoundRobinGrid';
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -96,6 +99,7 @@ const [activeTab, setActiveTab] = useState<TabType>('live');    const [liveMatch
 }, [selectedTournament]);
 
 
+
 {!selectedSport && (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
     {sports.map((s) => (
@@ -125,6 +129,7 @@ const fetchTeams = async () => {
     setTeams(data || []);
   }
 };
+
 
 // Render this in your JSX:
 <div className="mt-8">
@@ -279,12 +284,20 @@ const fetchTeams = async () => {
   )}
 
   {activeTab === 'bracket' && (
-    <div className="text-center py-20 border-2 border-dashed border-red-900 rounded-3xl">
-      <h3 className="text-2xl font-black text-white">Tournament Bracket</h3>
-      {/* Add logic to check if bracket data exists */}
-      <p className="text-red-400 mt-2">We will update the bracket once the tournament starts.</p>
-    </div>
-  )}
+  <div className="py-10 border-2 border-dashed border-red-900 rounded-3xl">
+    <h3 className="text-2xl font-black text-white text-center mb-8">Tournament Bracket</h3>
+    
+    {selectedTournament.format === 'single_elimination' ? (
+      <SingleEliminationBracket tournamentId={selectedTournament.id} />
+    ) : selectedTournament.format === 'round_robin' ? (
+      <RoundRobinGrid tournamentId={selectedTournament.id} />
+    ) : (
+      <div className="text-center">
+        <p className="text-red-400">Format not set or bracket not generated.</p>
+      </div>
+    )}
+  </div>
+)}
 
   {activeTab === 'teams' && (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
